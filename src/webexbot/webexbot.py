@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 from webex_bot.webex_bot import WebexBot  # type: ignore
 from .commands import OpenAI
 
-
 # (Optional) Proxy configuration
 # Supports https or wss proxy, wss prioritized.
 # proxies = {
@@ -11,6 +10,7 @@ from .commands import OpenAI
 #     'wss': 'socks5://proxy.esl.example.com:1080'
 # }
 
+# Load environment variables
 load_dotenv()
 
 # Create a Bot Object
