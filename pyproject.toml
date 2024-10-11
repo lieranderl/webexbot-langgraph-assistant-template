@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "webexbot-langgraph-ai-assistant"
+version = "0.1.0"
+description = ""
+authors = ["evfedoto"]
+readme = "README.md"
+packages = [{ include = "src" }, { include = "src/**/*.py" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langgraph = "^0.2.28"
+langchain = "^0.3.1"
+langchain-openai = "^0.2.1"
+langchainhub = "^0.1.21"
+python-dotenv = "^1.0.1"
+langchain-fireworks = "^0.2.0"
+langgraph-checkpoint-sqlite = "^1.0.4"
+webex-bot = "^0.5.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6.8"
+mypy = "^1.11.2"
+poethepoet = "^0.29.0"
+
+[tool.poe.tasks]
+_rf = "poetry run ruff format ."
+_rc = "poetry run ruff check . --fix"
+_mypy = "poetry run mypy ."
+format = ["_rf", "_rc", "_mypy"]
+update = "poetry update"
+start_graph = "poetry run python src/react_agent/main.py"
+start_webexbot = "poetry run python -m webexbot.webexbot"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
