@@ -11,5 +11,5 @@
 ```poe format ```
 ### To update the project packages, run:
 ```poe update ```
-### To start the project and run main.py, use the following command:
-```poe start```
+### To start the webex bot ai assistant, use the following command:
+```poe start_webexbot```
