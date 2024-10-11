@@ -1,7 +1,6 @@
 ## webex bot commands
 
 # commnads that accept all text and send it back in replay
-import asyncio
 import logging
 from webexteamssdk import WebexTeamsAPI  # type: ignore
 from webex_bot.models.command import Command  # type: ignore
@@ -26,13 +25,12 @@ class OpenAI(Command):
     #     return "Working on it..."
 
     def execute(self, message, attachment_actions, activity):
-        r = asyncio.run(
-            graph_db_invoke(
-                message,
-                thread_id=activity["target"]["globalId"],
-                email=activity["actor"]["id"],
-                displayName=activity["actor"]["displayName"],
-                max_results=5,
-            )
+        response = graph_db_invoke(
+            message,
+            thread_id=activity["target"]["globalId"],
+            email=activity["actor"]["id"],
+            displayName=activity["actor"]["displayName"],
+            max_results=5,
         )
-        return r["messages"][-1].content
+
+        return response["messages"][-1].content

@@ -2,17 +2,15 @@ import os
 from uuid import uuid4
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from .graph import graph
 
 
-async def graph_db_invoke(message, **kwargs):
-    async with AsyncSqliteSaver.from_conn_string(
-        os.getenv("SQL_CONNECTION_STR")
-    ) as saver:
+def graph_db_invoke(message, **kwargs):
+    with SqliteSaver.from_conn_string(os.getenv("SQL_CONNECTION_STR")) as saver:
         graph.checkpointer = saver
         run_id = uuid4()
-        return await graph.ainvoke(
+        return graph.invoke(
             input={"messages": HumanMessage(content=message)},
             config=RunnableConfig(
                 configurable={
