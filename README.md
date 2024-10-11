@@ -1,4 +1,4 @@
-# Laggraph reAct Example Project 
+# Webexbot AI Assistant langgraph react agent template.
 ![graph](static/agent_graph.png)
 
 ## Install
