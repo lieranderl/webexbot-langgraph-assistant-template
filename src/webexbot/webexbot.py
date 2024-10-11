@@ -1,11 +1,8 @@
 import os
-# import threading
 from dotenv import load_dotenv
-from webex_bot.webex_bot import WebexBot
-from src.webexbot.commands import OpenAI, UserAuth
+from webex_bot.webex_bot import WebexBot  # type: ignore
+from .commands import OpenAI
 
-
-user_tokens = {}
 
 # (Optional) Proxy configuration
 # Supports https or wss proxy, wss prioritized.
@@ -21,6 +18,7 @@ bot = WebexBot(
     teams_bot_token=os.getenv("WEBEX_TEAMS_ACCESS_TOKEN"),
     # approved_rooms=['06586d8d-6aad-4201-9a69-0bf9eeb5766e'],
     # approved_users=[os.getenv("WEBEX_TEAMS_USER_ID")],
+    approved_domains=["cisco.com"],
     bot_name="AI-Assistant",
     bot_help_subtitle="",
     threads=False,
@@ -28,4 +26,3 @@ bot = WebexBot(
 )
 # run the bot
 bot.run()
-

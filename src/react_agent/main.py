@@ -6,15 +6,12 @@ import asyncio
 
 from react_agent.utils import get_message_text
 
-# from react_agent.utils import get_message_text
-
 thread_id = str(uuid.uuid4())
 
 user_inputs = [
     "Hi there! My name is Will.",
     "Remember my name?",
     "What is 6 power 2?",
-    "What is 4 factorial?",
 ]
 
 
@@ -22,7 +19,7 @@ async def main():
     load_dotenv()
     # create config for the graph
     config = {"configurable": {"thread_id": thread_id, "temperature": 0.1}}
-    # save the graph to a file in src/static
+    # save the graph image to a file in src/static
     graph.get_graph().draw_mermaid_png(output_file_path="static/agent_graph.png")
 
     # run the graph
@@ -55,7 +52,6 @@ async def main():
                     response = get_message_text(event["call_model"]["messages"][-1])
                     if response:
                         print("AI:", response)
-                # event["messages"][-1].pretty_print()
 
         if event and "prompt" in event:
             print("Done!")

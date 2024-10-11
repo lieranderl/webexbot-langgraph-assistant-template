@@ -3,8 +3,8 @@
 # commnads that accept all text and send it back in replay
 import asyncio
 import logging
-from webexteamssdk import WebexTeamsAPI
-from webex_bot.models.command import Command
+from webexteamssdk import WebexTeamsAPI  # type: ignore
+from webex_bot.models.command import Command  # type: ignore
 from react_agent import graph
 from .invoker import graph_db_invoke
 
@@ -29,5 +29,13 @@ class OpenAI(Command):
 
     def execute(self, message, attachment_actions, activity):
         print("ACTIVITY:", activity)
-        r = asyncio.run(graph_db_invoke(graph, activity["target"]["globalId"], activity["actor"]["id"], message))
+        r = asyncio.run(
+            graph_db_invoke(
+                graph=graph,
+                thread_id=activity["target"]["globalId"],
+                message=message,
+                email=activity["actor"]["id"],
+                displayName=activity["actor"]["displayName"],
+            )
+        )
         return r["messages"][-1].content
