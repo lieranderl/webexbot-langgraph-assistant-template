@@ -8,11 +8,11 @@ packages = [{ include = "src" }, { include = "src/**/*.py" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langgraph = "^0.2.28"
-langchain = "^0.3.1"
-langchain-openai = "^0.2.1"
+langgraph = "^0.2.35"
+langchain = "^0.3.3"
+langchain-openai = "^0.2.2"
 python-dotenv = "^1.0.1"
-langgraph-checkpoint-sqlite = "^1.0.4"
+langgraph-checkpoint-sqlite = "^2.0.0"
 webex-bot = "^0.5.2"
 langchain-community = "^0.3.2"
 
@@ -27,8 +27,7 @@ _rc = "poetry run ruff check . --fix"
 _mypy = "poetry run mypy ."
 format = ["_rf", "_rc", "_mypy"]
 update = "poetry update"
-start_graph = "poetry run python src/react_agent/main.py"
-start_webexbot = "poetry run python -m webexbot.webexbot"
+start = "poetry run python -m webexbot.webexbot"
 
 [build-system]
 requires = ["poetry-core"]

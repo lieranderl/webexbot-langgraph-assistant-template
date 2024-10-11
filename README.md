@@ -12,4 +12,4 @@
 ### To update the project packages, run:
 ```poe update ```
 ### To start the webex bot ai assistant, use the following command:
-```poe start_webexbot```
+```poe start```
