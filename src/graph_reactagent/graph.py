@@ -32,19 +32,8 @@ prompt = ChatPromptTemplate.from_messages(
 
 
 def format_for_model(state) -> Any:
-    """
-    Formats the state for the model using the prompt template.
-
-    Args:
-        state (AgentState): The current state of the agent.
-
-    Returns:
-        Any: The formatted input for the model.
-    """
-
-    # Filter messages to reduce the number of messages passed to the model and save token usage. Pass the last 5 messages.
-    # Filter messages to not interrupt tool calls. ToolMessage must be sent with the preceding message of a tool call.
-    # Ensure we are dealing with at least one message
+    # Limit the number of messages sent to the model to the last 5, reducing token usage.
+    # Ensure tool-related messages are not interrupted by including the message immediately before a tool call along with the ToolMessage.
     messages = state["messages"]
     messages_length = len(messages)
     # If the length of messages is less than or equal to 5, handle accordingly
