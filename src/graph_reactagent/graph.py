@@ -44,9 +44,21 @@ def format_for_model(state) -> Any:
 
     # Filter messages to reduce the number of messages passed to the model and save token usage. Pass the last 5 messages.
     # Filter messages to not interrupt tool calls. ToolMessage must be sent with the preceding message of a tool call.
-    messages = state["messages"][-5:]
-    if isinstance(state["messages"][-5], ToolMessage):
-        messages = state["messages"][-6:]
+    # Ensure we are dealing with at least one message
+    messages = state["messages"]
+    messages_length = len(messages)
+    # If the length of messages is less than or equal to 5, handle accordingly
+    if messages_length <= 5:
+        # Check if the last message is an instance of ToolMessage
+        if isinstance(messages[-1], ToolMessage) and messages_length > 1:
+            messages = messages[:-1]
+    else:
+        # Get the last 5 messages
+        messages = messages[-5:]
+        # Check if the first of these last 5 messages is a ToolMessage, and if so, include one more preceding message
+        if isinstance(messages[0], ToolMessage) and messages_length > 5:
+            messages = state["messages"][-6:]
+
     return prompt.invoke(
         {
             "messages": messages,
