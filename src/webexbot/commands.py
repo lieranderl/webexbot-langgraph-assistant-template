@@ -5,7 +5,6 @@ from webex_bot.models.command import Command  # type: ignore
 from graph_reactagent.invoker import graph_db_invoke
 
 
-
 class OpenAI(Command):
     def __init__(self):
         super().__init__()
