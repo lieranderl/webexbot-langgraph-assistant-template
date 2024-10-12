@@ -1,14 +1,9 @@
 ## webex bot commands
 
 # commnads that accept all text and send it back in replay
-import logging
-from webexteamssdk import WebexTeamsAPI  # type: ignore
 from webex_bot.models.command import Command  # type: ignore
 from graph_reactagent.invoker import graph_db_invoke
 
-
-log = logging.getLogger(__name__)
-webex_api = WebexTeamsAPI()
 
 
 class OpenAI(Command):

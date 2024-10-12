@@ -99,6 +99,7 @@ TAVILY_API_KEY=<Your Tavily API key for web search>
 
 # Python Environment
 PYTHONPATH=src
+# SQLite Database for Conversation History
 SQL_CONNECTION_STR=checkpoints.db
 ```
 
