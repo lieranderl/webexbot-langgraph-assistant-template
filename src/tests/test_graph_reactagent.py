@@ -44,7 +44,7 @@ def dummy_get_webex_user_info() -> dict:
 
 class TestGraph(unittest.TestCase):
     def setUp(self):
-        self.model = "gpt-3.5-turbo" 
+        self.model = "gpt-3.5-turbo"
         self.tools = [
             Tool.from_function(
                 func=dummy_search, name="search", description="Search the web"
