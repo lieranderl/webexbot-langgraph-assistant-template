@@ -1,10 +1,11 @@
 from typing import Any, List
 from langchain_core.messages import ToolMessage
 from .interfaces import IMessageFilter
+from langchain_core.messages import AnyMessage
 
 
 class DefaultMessageFilter(IMessageFilter):
-    def filter_messages(self, messages: List[Any]) -> List[Any]:
+    def filter_messages(self, messages: List[AnyMessage]) -> List[Any]:
         messages_length = len(messages)
 
         # If there are fewer than 5 messages, return all messages

@@ -1,8 +1,8 @@
 # tests/test_message_filter.py
 
 import unittest
-from typing import List, Any
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from typing import List
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage
 from graph_reactagent.messages_filter import DefaultMessageFilter  # type: ignore
 
 
@@ -11,7 +11,7 @@ class TestDefaultMessageFilter(unittest.TestCase):
         self.filter = DefaultMessageFilter()
 
     def test_empty_message_list(self):
-        messages: List[Any] = []
+        messages: List[AnyMessage] = []
         filtered = self.filter.filter_messages(messages)
         self.assertEqual(filtered, messages)
 

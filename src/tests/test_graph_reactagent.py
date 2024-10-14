@@ -1,12 +1,15 @@
+import os
 import unittest
 from unittest.mock import Mock, patch
 from datetime import datetime, timezone
+from uuid import UUID
 from graph_reactagent.messages_filter import DefaultMessageFilter  # type: ignore
 from graph_reactagent.prompt_formatter import DefaultPromptFormatter  # type: ignore
 from graph_reactagent.graph import Graph, create_default_graph  # type: ignore
 from graph_reactagent.invoker import GraphInvoker  # type: ignore
 from langchain_core.prompts import ChatPromptTemplate  # type: ignore
 from langchain_core.tools import Tool
+from langchain_core.messages import HumanMessage
 
 
 class TestDefaultMessageFilter(unittest.TestCase):
@@ -85,28 +88,103 @@ def test_create_default_graph(
 
 class TestGraphInvoker(unittest.TestCase):
     def setUp(self):
-        self.graph = Mock()
-        self.graph.graph = Mock()
-        self.graph.graph.invoke.return_value = {
-            "messages": [Mock(content="Test response")]
-        }
-        self.invoker = GraphInvoker(self.graph)
+        self.mock_graph = Mock(spec=Graph)
+        self.mock_graph.graph = Mock()
+        self.graph_invoker = GraphInvoker(
+            graph=self.mock_graph,
+            connection_str="sqlite:///test.db",
+            llm_model="test-model",
+            temperature=0.1,
+        )
 
-    @patch("graph_reactagent.invoker.SqliteSaver")
-    def test_invoke(self, mock_sqlite_saver):
-        message = "Test message"
-        result = self.invoker.invoke(message)
+    def test_graph_invoker_initialization(self):
+        mock_default_graph = Mock(spec=Graph)
+        with patch(
+            "graph_reactagent.graph.create_default_graph",
+            return_value=mock_default_graph,
+        ):
+            invoker = GraphInvoker(graph=mock_default_graph)
+            self.assertEqual(invoker.connection_str, os.getenv("SQL_CONNECTION_STR"))
+            self.assertEqual(invoker.llm_model, os.getenv("LLM_MODEL"))
+            self.assertEqual(invoker.temperature, 0.1)
 
-        # Assert that SqliteSaver.from_conn_string was called
-        mock_sqlite_saver.from_conn_string.assert_called_once()
+    def test_graph_invoker_custom_initialization(self):
+        custom_graph = Mock(spec=Graph)
+        invoker = GraphInvoker(
+            graph=custom_graph,
+            connection_str="custom_conn_str",
+            llm_model="custom_model",
+            temperature=0.5,
+        )
+        self.assertEqual(invoker.connection_str, "custom_conn_str")
+        self.assertEqual(invoker.llm_model, "custom_model")
+        self.assertEqual(invoker.temperature, 0.5)
+        self.assertEqual(invoker.graph, custom_graph)
 
-        # Assert that the graph's invoke method was called with the correct arguments
-        self.graph.graph.invoke.assert_called_once()
-        call_args = self.graph.graph.invoke.call_args
-        self.assertIn("input", call_args[1])
-        self.assertIn("config", call_args[1])
+    @patch("graph_reactagent.invoker.SqliteSaver.from_conn_string")
+    def test_invoke_success(self, mock_sqlite_saver):
+        expected_result = {"response": "Test response"}
+        self.graph_invoker.graph.graph.invoke.return_value = expected_result
 
-        # Assert that the result is a dictionary and has the expected structure
-        self.assertIsInstance(result, dict)
-        self.assertIn("messages", result)
-        self.assertEqual(result["messages"][0].content, "Test response")
+        result = self.graph_invoker.invoke("Test message")
+
+        self.assertEqual(result, expected_result)
+        self.graph_invoker.graph.graph.invoke.assert_called_once()
+        called_input = self.graph_invoker.graph.graph.invoke.call_args[1]["input"]
+        self.assertIsInstance(called_input["messages"][0], HumanMessage)
+        self.assertEqual(called_input["messages"][0].content, "Test message")
+
+    @patch("graph_reactagent.invoker.SqliteSaver.from_conn_string")
+    def test_invoke_with_custom_kwargs(self, mock_sqlite_saver):
+        self.graph_invoker.invoke("Test message", custom_param="custom_value")
+
+        config = self.graph_invoker.graph.graph.invoke.call_args[1]["config"]
+        self.assertEqual(config["configurable"]["custom_param"], "custom_value")
+
+    def test_invoke_no_connection_string(self):
+        with patch.object(GraphInvoker, "__init__", return_value=None):
+            invoker = GraphInvoker(graph=self.mock_graph)
+            invoker.connection_str = ""
+            invoker.llm_model = "test-model"
+
+        with self.assertRaisesRegex(
+            ValueError, "No database connection string provided"
+        ):
+            invoker.invoke("Test message")
+
+    def test_invoke_no_llm_model(self):
+        with patch.object(GraphInvoker, "__init__", return_value=None):
+            invoker = GraphInvoker(graph=self.mock_graph)
+            invoker.connection_str = "sqlite:///test.db"
+            invoker.llm_model = ""
+
+        with self.assertRaisesRegex(ValueError, "No LLM model provided"):
+            invoker.invoke("Test message")
+
+    @patch("graph_reactagent.invoker.uuid4")
+    @patch("graph_reactagent.invoker.SqliteSaver.from_conn_string")
+    def test_invoke_run_id(self, mock_sqlite_saver, mock_uuid4):
+        mock_uuid = UUID("12345678-1234-5678-1234-567812345678")
+        mock_uuid4.return_value = mock_uuid
+
+        self.graph_invoker.invoke("Test message")
+
+        config = self.graph_invoker.graph.graph.invoke.call_args[1]["config"]
+        self.assertEqual(config["run_id"], mock_uuid)
+
+    @patch("graph_reactagent.invoker.SqliteSaver.from_conn_string")
+    def test_invoke_saver_context_manager(self, mock_sqlite_saver):
+        self.graph_invoker.invoke("Test message")
+
+        mock_sqlite_saver.assert_called_once_with(self.graph_invoker.connection_str)
+        mock_sqlite_saver.return_value.__enter__.assert_called_once()
+        mock_sqlite_saver.return_value.__exit__.assert_called_once()
+
+    @patch("graph_reactagent.invoker.SqliteSaver.from_conn_string")
+    def test_invoke_sets_checkpointer(self, mock_sqlite_saver):
+        self.graph_invoker.invoke("Test message")
+
+        self.assertEqual(
+            self.graph_invoker.graph.graph.checkpointer,
+            mock_sqlite_saver.return_value.__enter__.return_value,
+        )
