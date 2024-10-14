@@ -20,6 +20,9 @@ langchain-community = "^0.3.2"
 ruff = "^0.6.8"
 mypy = "^1.11.2"
 poethepoet = "^0.29.0"
+coverage = "^7.6.3"
+pytest = "^8.3.3"
+pytest-cov = "^5.0.0"
 
 [tool.poe.tasks]
 _rf = "poetry run ruff format ."
@@ -28,6 +31,7 @@ _mypy = "poetry run mypy ."
 format = ["_rf", "_rc", "_mypy"]
 update = "poetry update"
 start = "poetry run python -m webexbot.webexbot"
+test = "poetry run pytest --cov --cov-report=term-missing"
 
 [build-system]
 requires = ["poetry-core"]

@@ -28,14 +28,44 @@ The combination of these technologies allows for the creation of a sophisticated
 
 The project is organized as follows:
 
-- `src/`: Main package directory
-  - `webexbot/`: Webex bot implementation
-    - `webexbot.py`: Main entry point for the Webex bot
-    - `commands.py`: Defines the OpenAI command for the bot
-  - `graph_reactagent/`: ReAct agent and related modules
-    - `graph.py`: Implements the ReAct agent using LangChain and LangGraph
-    - `invoker.py`: Handles graph invocation and checkpointing
-    - `tools.py`: Defines tools for web search, user info retrieval, and calculations
+```
+project_root/
+│
+├── src/
+│   ├── graph_reactagent/
+│   │   ├── __init__.py
+│   │   ├── interfaces.py
+│   │   ├── graph.py
+│   │   ├── invoker.py
+│   │   ├── message_filter.py
+│   │   ├── prompt_formatter.py
+│   │   └── tools.py
+│   │
+│   └── webexbot/
+│       ├── __init__.py
+│       ├── commands.py
+│       └── webexbot.py
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_graph_reactagent.py
+│   ├── test_message_filter.py
+│   ├── test_tools.py
+│   └── test_webexbot.py
+│
+├── .env
+├── .coveragerc
+├── pyproject.toml
+└── README.md
+```
+
+- graph_reactagent/: Module for graph-based react agent
+- webexbot/: Module for Webex bot implementation
+- tests/: Directory containing all test files
+- .env: Environment variables file
+- .coveragerc: Configuration file for coverage reports
+- pyproject.toml: Project dependencies
+- README.md: Project documentation
 
 ### ReAct Agent Graph
 
@@ -125,6 +155,7 @@ This project uses Poetry for dependency management and Poe the Poet for task run
   - This task runs ruff formatter, ruff linter, and mypy type checker
 - Update dependencies: `poe update`
 - Start the bot: `poe start`
+- Run tests: `poe test`
 
 ## Configuration
 
