@@ -21,18 +21,16 @@ def search(
 
 
 def power(a: int, b: int) -> int:
-    """Calculate power of a number."""
+    """Calculate power of number.
+    input: a, b
+    """
     return a**b
 
 
 def get_webex_user_info(
     config: Annotated[RunnableConfig, InjectedToolArg],
 ) -> Optional[Dict[str, str]]:
-    """Get user information: email and user name/display name from Webex SDK"""
+    """Get user information: email and user name/displayName from Webex SDK"""
     displayName: str = config.get("configurable", {}).get("displayName") or ""
     email: str = config.get("configurable", {}).get("email") or ""
-
-    return {
-        "displayName": displayName,
-        "email": email,
-    }
+    return {"displayName": displayName, "email": email}

@@ -1,36 +1,44 @@
 import os
 from uuid import uuid4
-from typing import Any
+from typing import Any, Dict
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
-from .graph import graph
+from .interfaces import IGraphInvoker
+from .graph import Graph
 
 
-def graph_db_invoke(message: str, **kwargs: Any) -> dict[str, Any] | Any:
-    """
-    Invokes the graph with a given message and additional keyword arguments, using a SQLite database for checkpointing.
+class GraphInvoker(IGraphInvoker):
+    def __init__(
+        self,
+        graph: Graph,
+        connection_str: str = "",
+        llm_model: str = "",
+        temperature: float = 0.1,
+    ):
+        self.graph = graph
+        self.connection_str = connection_str or os.getenv("SQL_CONNECTION_STR")
+        self.llm_model = llm_model or os.getenv("LLM_MODEL")
+        self.temperature = temperature
 
-    Args:
-        message (str): The input message to be processed by the graph.
-        **kwargs (Any): Additional configuration options for the graph.
-
-    Returns:
-        Any: The output from the graph invocation.
-    """
-    connection = os.getenv("SQL_CONNECTION_STR") or "checkpoints.db"
-    with SqliteSaver.from_conn_string(connection) as saver:
-        graph.checkpointer = saver
-        run_id = uuid4()
-        config = RunnableConfig(
-            configurable={
-                "model": "gpt-4o-mini",
-                "temperature": 0.1,
-                **kwargs,
-            },
-            run_id=run_id,
-        )
-        return graph.invoke(
-            input={"messages": HumanMessage(content=message)},
-            config=config,
-        )
+    def invoke(self, message: str, **kwargs: Any) -> Dict[str, Any]:
+        if not self.connection_str:
+            raise ValueError("No database connection string provided")
+        if not self.llm_model:
+            raise ValueError("No LLM model provided")
+        with SqliteSaver.from_conn_string(self.connection_str) as saver:
+            self.graph.graph.checkpointer = saver
+            run_id = uuid4()
+            config = RunnableConfig(
+                configurable={
+                    "model": self.llm_model,
+                    "temperature": self.temperature,
+                    **kwargs,
+                },
+                run_id=run_id,
+            )
+            result = self.graph.graph.invoke(
+                input={"messages": [HumanMessage(content=message)]},
+                config=config,
+            )
+            return result
