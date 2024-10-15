@@ -1,8 +1,9 @@
 from typing import List
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage
+from graph_reactagent.interfaces import IMessageFilter
 
 
-class DefaultMessageFilter:
+class DefaultMessageFilter(IMessageFilter):
     def filter_messages(self, messages: List[AnyMessage]) -> List[AnyMessage]:
         message_count = min(6, len(messages))
         filtered_messages = messages[-message_count:]
