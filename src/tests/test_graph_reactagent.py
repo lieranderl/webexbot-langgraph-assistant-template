@@ -12,14 +12,6 @@ from langchain_core.tools import Tool
 from langchain_core.messages import HumanMessage
 
 
-class TestDefaultMessageFilter(unittest.TestCase):
-    def test_filter_messages(self):
-        filter = DefaultMessageFilter()
-        messages = [Mock() for _ in range(10)]
-        filtered = filter.filter_messages(messages)
-        self.assertEqual(len(filtered), 5)
-
-
 class TestDefaultPromptFormatter(unittest.TestCase):
     def setUp(self):
         self.prompt = Mock(spec=ChatPromptTemplate)

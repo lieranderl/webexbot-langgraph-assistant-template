@@ -1,5 +1,3 @@
-# tests/test_message_filter.py
-
 import unittest
 from typing import List
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, AnyMessage
@@ -15,46 +13,104 @@ class TestDefaultMessageFilter(unittest.TestCase):
         filtered = self.filter.filter_messages(messages)
         self.assertEqual(filtered, messages)
 
-    def test_less_than_five_messages(self):
-        messages = [HumanMessage(content=str(i)) for i in range(4)]
-        filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages)
-
-    def test_exactly_five_messages(self):
-        messages = [HumanMessage(content=str(i)) for i in range(5)]
-        filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages)
-
-    def test_more_than_five_messages(self):
-        messages = [HumanMessage(content=str(i)) for i in range(10)]
-        filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages[-5:])
-
-    def test_first_of_last_five_is_tool_message(self):
-        messages = [HumanMessage(content=str(i)) for i in range(5)]
-        messages.append(ToolMessage(content="tool", tool_call_id="tool1"))
-        messages.extend([HumanMessage(content=str(i)) for i in range(6, 10)])
-        filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages[-6:])
-
-    def test_first_of_last_five_is_not_tool_message(self):
-        messages = [HumanMessage(content=str(i)) for i in range(5)]
-        messages.append(ToolMessage(content="tool", tool_call_id="tool1"))
-        messages.extend([HumanMessage(content=str(i)) for i in range(6, 11)])
-        filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages[-5:])
-
-    def test_mixed_message_types(self):
+    def test_less_than_six_messages(self):
         messages = [
             HumanMessage(content="1"),
             AIMessage(content="2"),
+            HumanMessage(content="3"),
+            AIMessage(content="4"),
+        ]
+        filtered = self.filter.filter_messages(messages)
+        self.assertEqual(filtered, messages)
+
+    def test_exactly_six_messages(self):
+        messages = [
+            HumanMessage(content="1"),
+            AIMessage(content="2"),
+            HumanMessage(content="3"),
+            AIMessage(content="4"),
+            HumanMessage(content="5"),
+            AIMessage(content="6"),
+        ]
+        filtered = self.filter.filter_messages(messages)
+        self.assertEqual(filtered, messages)
+
+    def test_more_than_six_messages(self):
+        messages = [HumanMessage(content=str(i)) for i in range(10)]
+        filtered = self.filter.filter_messages(messages)
+        self.assertEqual(filtered, messages[-6:])
+
+    def test_no_assistant_or_tool_message_at_start(self):
+        messages = [
+            AIMessage(content="1"),
+            ToolMessage(content="2", tool_call_id="tool1"),
+            HumanMessage(content="3"),
+            AIMessage(content="4"),
+            HumanMessage(content="5"),
+            AIMessage(content="6"),
+        ]
+        filtered = self.filter.filter_messages(messages)
+        self.assertEqual(len(filtered), 4)
+        self.assertIsInstance(filtered[0], HumanMessage)
+
+    def test_tool_message_preceded_by_assistant(self):
+        messages = [
+            HumanMessage(content="1"),
+            AIMessage(content="2"),
+            ToolMessage(content="3", tool_call_id="tool1"),
+            HumanMessage(content="4"),
+            AIMessage(content="5"),
+            ToolMessage(content="6", tool_call_id="tool2"),
+        ]
+        filtered = self.filter.filter_messages(messages)
+        self.assertEqual(len(filtered), 6)
+        tool_indices = [
+            i for i, msg in enumerate(filtered) if isinstance(msg, ToolMessage)
+        ]
+        for idx in tool_indices:
+            self.assertIsInstance(filtered[idx - 1], AIMessage)
+
+    def test_remove_orphaned_assistant_and_tool_messages(self):
+        messages = [
+            AIMessage(content="1"),
+            ToolMessage(content="2", tool_call_id="tool1"),
             HumanMessage(content="3"),
             AIMessage(content="4"),
             ToolMessage(content="5", tool_call_id="tool2"),
             HumanMessage(content="6"),
         ]
         filtered = self.filter.filter_messages(messages)
-        self.assertEqual(filtered, messages[-5:])
+        self.assertEqual(len(filtered), 4)
+        expected = [
+            HumanMessage(content="3"),
+            AIMessage(content="4"),
+            ToolMessage(content="5", tool_call_id="tool2"),
+            HumanMessage(content="6"),
+        ]
+        self.assertEqual(filtered, expected)
+
+    def test_complex_scenario(self):
+        messages = [
+            AIMessage(content="0"),
+            HumanMessage(content="1"),
+            AIMessage(content="2"),
+            ToolMessage(content="3", tool_call_id="tool1"),
+            AIMessage(content="4"),
+            HumanMessage(content="5"),
+            AIMessage(content="6"),
+            ToolMessage(content="7", tool_call_id="tool2"),
+            AIMessage(content="8"),
+            HumanMessage(content="9"),
+        ]
+        filtered = self.filter.filter_messages(messages)
+        expected = [
+            HumanMessage(content="5"),
+            AIMessage(content="6"),
+            ToolMessage(content="7", tool_call_id="tool2"),
+            AIMessage(content="8"),
+            HumanMessage(content="9"),
+        ]
+        self.assertEqual(filtered, expected)
 
 
 if __name__ == "__main__":
